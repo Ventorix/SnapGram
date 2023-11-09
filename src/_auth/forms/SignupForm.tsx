@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { SignupValidation } from '@/lib/validation';
 import Loader from '@/components/shared/Loader';
+import { createUserAccount } from '@/lib/appwrite/api';
 
 export default function SignupForm() {
 	const isLoading = false;
@@ -32,7 +33,9 @@ export default function SignupForm() {
 
 	// 2. Define a submit handler.
 	async function onSubmit(values: z.infer<typeof SignupValidation>) {
-		// const newUser = await createUserAccount(values);
+		const newUser = await createUserAccount(values);
+
+		console.log(newUser);
 	}
 
 	return (
@@ -53,7 +56,13 @@ export default function SignupForm() {
 							<FormItem>
 								<FormLabel>Name</FormLabel>
 								<FormControl>
-									<Input autoFocus type='text' className='shad-input' {...field} />
+									<Input
+										autoFocus
+										type='text'
+										className='shad-input'
+										placeholder='Your name'
+										{...field}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -67,7 +76,13 @@ export default function SignupForm() {
 							<FormItem>
 								<FormLabel>Username</FormLabel>
 								<FormControl>
-									<Input autoComplete='username' type='text' className='shad-input' {...field} />
+									<Input
+										autoComplete='username'
+										type='text'
+										className='shad-input'
+										placeholder='Your username'
+										{...field}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -81,7 +96,7 @@ export default function SignupForm() {
 							<FormItem>
 								<FormLabel>Email</FormLabel>
 								<FormControl>
-									<Input type='email' className='shad-input' {...field} />
+									<Input type='email' className='shad-input' placeholder='Your email' {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -99,6 +114,7 @@ export default function SignupForm() {
 										autoComplete='current-password'
 										type='password'
 										className='shad-input'
+										placeholder='Your password'
 										{...field}
 									/>
 								</FormControl>
