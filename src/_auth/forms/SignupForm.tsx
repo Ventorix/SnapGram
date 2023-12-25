@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -15,12 +15,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { SignupValidation } from '@/lib/validation';
 import Loader from '@/components/shared/Loader';
-import { createUserAccount } from '@/lib/appwrite/api';
 import { useToast } from '@/components/ui/use-toast';
+import { useCreateUserAccount, useSignInAccount } from '@/lib/react-query/queriesAndMutations';
+import { useUserContext } from '@/context/AuthContext';
 
 export default function SignupForm() {
 	const { toast } = useToast();
-	const isLoading = false;
+	const navigate = useNavigate();
+	const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
+
+	const { mutateAsync: createUserAccount, isPending: isCreatingAccount } = useCreateUserAccount();
+	const { mutateAsync: signInAccount, isPending: isSigningInUser } = useSignInAccount();
 
 	// 1. Define your form.
 	const form = useForm<z.infer<typeof SignupValidation>>({
@@ -39,8 +44,18 @@ export default function SignupForm() {
 
 		if (!newUser) return toast({ title: 'Sign up failed, please try again.' });
 
-		// const session = await signInAccount()
-		console.log(newUser);
+		const session = await signInAccount({ email: values.email, password: values.password });
+
+		if (!session) return toast({ title: 'Sign in failed, please try again.' });
+
+		const isLoggedIn = await checkAuthUser();
+
+		if (isLoggedIn) {
+			form.reset();
+			navigate('/');
+		} else {
+			return toast({ title: 'Sign up failed, please try again.' });
+		}
 	}
 
 	return (
@@ -69,7 +84,7 @@ export default function SignupForm() {
 										{...field}
 									/>
 								</FormControl>
-								<FormMessage />
+								<FormMessage className='text-red' />
 							</FormItem>
 						)}
 					/>
@@ -89,7 +104,7 @@ export default function SignupForm() {
 										{...field}
 									/>
 								</FormControl>
-								<FormMessage />
+								<FormMessage className='text-red' />
 							</FormItem>
 						)}
 					/>
@@ -103,7 +118,7 @@ export default function SignupForm() {
 								<FormControl>
 									<Input type='email' className='shad-input' placeholder='Your email' {...field} />
 								</FormControl>
-								<FormMessage />
+								<FormMessage className='text-red' />
 							</FormItem>
 						)}
 					/>
@@ -123,15 +138,15 @@ export default function SignupForm() {
 										{...field}
 									/>
 								</FormControl>
-								<FormMessage />
+								<FormMessage className='text-red' />
 							</FormItem>
 						)}
 					/>
 
 					<Button className='shad-button_primary' type='submit'>
-						{isLoading ? (
+						{isCreatingAccount || isSigningInUser || isUserLoading ? (
 							<div className='flex-center gap-2'>
-								<Loader />
+								<Loader /> Loading...
 							</div>
 						) : (
 							'Sign up'
